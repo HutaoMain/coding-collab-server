@@ -20,4 +20,12 @@ public class AssessmentService {
     public List<Assessment> getAllAssessment() {
         return assessmentRepository.findAll();
     }
+
+    public List<Assessment> getAllAssessmentByClassId(Long classId){
+        return assessmentRepository.findByClassesId(classId);
+    }
+
+    public Assessment getAssessmentById(Long id) {
+        return assessmentRepository.findById(id).orElse(null);
+    }
 }

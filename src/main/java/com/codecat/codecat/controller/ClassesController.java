@@ -27,4 +27,10 @@ public class ClassesController {
         List<Classes> classesList = classesService.getAllClasses();
         return ResponseEntity.ok(classesList);
     }
+
+    @DeleteMapping("/delete/{id}")
+    private ResponseEntity<String> deleteClassById(@PathVariable Long id){
+        classesService.deleteClassById(id);
+        return ResponseEntity.ok("deleted ID: " + id);
+    }
 }

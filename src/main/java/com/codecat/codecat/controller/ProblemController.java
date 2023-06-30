@@ -7,9 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/problem")
+@CrossOrigin("*")
 public class ProblemController {
 
     @Autowired
@@ -25,5 +27,17 @@ public class ProblemController {
     private ResponseEntity<List<Problem>> getAllProblems() {
         List<Problem> problemList = problemService.getAllProblems();
         return ResponseEntity.ok(problemList);
+    }
+
+    @GetMapping("/list/{assessmentId}")
+    private ResponseEntity<List<Problem>> getAllAssessmentByClassId(@PathVariable Long assessmentId){
+        List<Problem> problemListByAssessmentId =  problemService.getAllProblemByAssessmentId(assessmentId);
+        return ResponseEntity.ok(problemListByAssessmentId);
+    }
+
+    @GetMapping("/{problemId}")
+    private ResponseEntity<Optional<Problem>> getProblemById(@PathVariable Long problemId){
+        Optional<Problem> problemById =  problemService.getProblemById(problemId);
+        return ResponseEntity.ok(problemById);
     }
 }

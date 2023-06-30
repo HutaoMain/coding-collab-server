@@ -17,14 +17,26 @@ public class AssessmentController {
     AssessmentService assessmentService;
 
     @PostMapping("/create")
-    private ResponseEntity<Assessment> createAssessment(@RequestBody Assessment assessment){
-       Assessment createClass =  assessmentService.createAssessment(assessment);
+    private ResponseEntity<Assessment> createAssessment(@RequestBody Assessment assessment) {
+        Assessment createClass = assessmentService.createAssessment(assessment);
         return ResponseEntity.ok(createClass);
     }
 
     @GetMapping("/list")
-    private ResponseEntity<List<Assessment>> getAllAssessment(){
-        List<Assessment> assessmentList =  assessmentService.getAllAssessment();
+    private ResponseEntity<List<Assessment>> getAllAssessment() {
+        List<Assessment> assessmentList = assessmentService.getAllAssessment();
         return ResponseEntity.ok(assessmentList);
+    }
+
+    @GetMapping("/list/{classId}")
+    private ResponseEntity<List<Assessment>> getAllAssessmentByClassId(@PathVariable Long classId) {
+        List<Assessment> assessmentListByClassId = assessmentService.getAllAssessmentByClassId(classId);
+        return ResponseEntity.ok(assessmentListByClassId);
+    }
+
+    @GetMapping("/{id}")
+    private ResponseEntity<Assessment> getAssessmentById(@PathVariable Long id) {
+        Assessment assessment = assessmentService.getAssessmentById(id);
+        return ResponseEntity.ok(assessment);
     }
 }

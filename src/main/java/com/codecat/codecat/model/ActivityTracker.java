@@ -8,28 +8,26 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "activity_tracker")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class ActivityTracker {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String lastName;
-
-    private String firstName;
-
-    private String middleName;
-
-    private String password;
-
     private String email;
 
-    private String classification = "student";
+    private Long testCaseId;
 
-    private Boolean isEnable = false;
+    private Integer points;
+
+    private String compiledCode;
+
+    private String expectedOutput;
+
+    private String problemConstraint;
 }

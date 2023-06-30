@@ -20,4 +20,8 @@ public class ClassesService {
     public List<Classes> getAllClasses(){
         return classesRepository.findAll();
     }
+
+    public void deleteClassById(Long id){
+        classesRepository.deleteById(id);
+    }
 }
