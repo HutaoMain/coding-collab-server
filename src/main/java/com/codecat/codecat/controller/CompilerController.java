@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.*;
 
@@ -23,6 +24,11 @@ import java.net.*;
 @CrossOrigin("*")
 @Slf4j
 public class CompilerController {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatus()).body(ex.getMessage());
+    }
 
     @Value("${rapid.api.key}")
     String rapidApiKey;
@@ -43,64 +49,70 @@ public class CompilerController {
     ActivityTrackerRepository activityTrackerRepository;
 
     @PostMapping("/{testCaseId}/{problemId}/{userEmail}/compile")
-    public ResponseEntity<CodeRequest> compileCode(@PathVariable Long problemId, @PathVariable Long testCaseId, @PathVariable String userEmail, @RequestBody CodeRequest codeRequest) throws JsonProcessingException {
-        Problem problem = problemRepository.findById(problemId).orElse(null);
-        if (problem == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<String> compileCode(@PathVariable Long problemId, @PathVariable Long testCaseId, @PathVariable String userEmail, @RequestBody CodeRequest codeRequest) throws JsonProcessingException {
+        try {
+            Problem problem = problemRepository.findById(problemId).orElse(null);
+            if (problem == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            TestCase testCase = testCaseRepository.findById(testCaseId).orElse(null);
+            if (testCase == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            log.info("testCase Ito: {}", testCase.getId().toString());
+
+            String expectedOutput = testCase.getExpectedOutput();
+            String constraints = problem.getProblemConstraint();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("X-RapidAPI-Key", rapidApiKey);
+            headers.set("X-RapidAPI-Host", rapidApiHost);
+
+            RestTemplate restTemplate = new RestTemplate();
+            RequestEntity<CodeRequest> requestEntity = new RequestEntity<>(codeRequest, headers, HttpMethod.POST, URI.create(rapidApiUrl));
+
+            ResponseEntity<String> compileResponse = restTemplate.exchange(requestEntity, String.class);
+
+            String responseBody = compileResponse.getBody();
+            log.info("responseBody: {}", responseBody);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode responseJson = objectMapper.readTree(responseBody);
+
+            String output = responseJson.get("output").asText();
+            log.info("output: {}", output);
+
+            /* handles the checking of the constraints */
+            switch (constraints) {
+                case "integer":
+                    handleIntegerConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    break;
+                case "string":
+                    handleStringConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    break;
+                case "userDefinedFunction":
+                    handleUserDefinedFunctionConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    break;
+                case "forLoop":
+                    handleForLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    break;
+                case "whileLoop":
+                    handleWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    break;
+                case "forWhileLoop":
+                    handleForWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    break;
+            }
+
+            return ResponseEntity.ok(responseBody);
+
+        } catch (Exception e) {
+            log.error("Error occurred during compilation: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        TestCase testCase = testCaseRepository.findById(testCaseId).orElse(null);
-        if (testCase == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        log.info("testCase Ito: {}", testCase.getId().toString());
-
-        String expectedOutput = testCase.getExpectedOutput();
-        String constraints = problem.getProblemConstraint();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-RapidAPI-Key", rapidApiKey);
-        headers.set("X-RapidAPI-Host", rapidApiHost);
-
-        RestTemplate restTemplate = new RestTemplate();
-        RequestEntity<CodeRequest> requestEntity = new RequestEntity<>(codeRequest, headers, HttpMethod.POST, URI.create(rapidApiUrl));
-
-        ResponseEntity<String> compileResponse = restTemplate.exchange(requestEntity, String.class);
-
-        String responseBody = compileResponse.getBody();
-        log.info("responseBody: {}", responseBody);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode responseJson = objectMapper.readTree(responseBody);
-
-        String output = responseJson.get("output").asText();
-        log.info("output: {}", output);
-
-        /* handles the checking of the constraints */
-        switch (constraints) {
-            case "integer":
-                handleIntegerConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
-                break;
-            case "string":
-                handleStringConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
-                break;
-            case "userDefinedFunction":
-                handleUserDefinedFunctionConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
-                break;
-            case "forLoop":
-                handleForLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
-                break;
-            case "whileLoop":
-                handleWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
-                break;
-            case "forWhileLoop":
-                handleForWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
-                break;
-        }
-
-        return restTemplate.exchange(requestEntity, CodeRequest.class);
     }
 
     /* handles the saving of the activity */
@@ -126,6 +138,8 @@ public class CompilerController {
             if (problem.getPattern().equals("exactMatch")) {
                 if (Integer.parseInt(expectedOutput) == integerValue) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             } else if (problem.getPattern().equals("patternMatching")) {
                 String expectedOutputString = String.valueOf(expectedOutput);
@@ -133,32 +147,38 @@ public class CompilerController {
 
                 if (integerValueString.contains(expectedOutputString)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             }
         } catch (Exception e) {
             log.info("output is not integer: {}", output);
+            throw new ResponseStatusException(HttpStatus.PARTIAL_CONTENT); // throw 206 Output doesn't follow the constraint
         }
     }
 
     /* handles the String Constraint */
     private void handleStringConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code) {
         try {
-            log.info("String value ito: {}", output);
-
-            if (problem.getPattern().equals("exactMatch")) {
-                if (expectedOutput.equals(output)) {
+            if (problem.getPattern().trim().equals("exactMatch".trim())) {
+                if (expectedOutput.trim().equals(output.trim())) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
-            } else if (problem.getPattern().equals("patternMatching")) {
+            } else if (problem.getPattern().trim().equals("patternMatching".trim())) {
                 String expectedOutputString = String.valueOf(expectedOutput);
                 String stringValue = String.valueOf(output);
                 log.info("String value ito: {} string pattern matching {} ", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             }
         } catch (Exception e) {
             log.info("output is not a string: {}", output);
+            throw new ResponseStatusException(HttpStatus.PARTIAL_CONTENT); // throw 206 Output doesn't follow the constraint
         }
     }
 
@@ -170,6 +190,8 @@ public class CompilerController {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             } else if (problem.getPattern().equals("patternMatching")) {
                 String expectedOutputString = String.valueOf(expectedOutput);
@@ -177,10 +199,13 @@ public class CompilerController {
                 log.info("User-defined function value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             }
         } else {
             log.info("User-defined function code does not match the expected pattern.");
+            throw new ResponseStatusException(HttpStatus.PARTIAL_CONTENT); // throw 206 Output doesn't follow the constraint
         }
     }
 
@@ -192,6 +217,8 @@ public class CompilerController {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             } else if (problem.getPattern().equals("patternMatching")) {
                 String expectedOutputString = String.valueOf(expectedOutput);
@@ -199,10 +226,13 @@ public class CompilerController {
                 log.info("For loop value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             }
         } else {
             log.info("For loop code does not match the expected pattern.");
+            throw new ResponseStatusException(HttpStatus.PARTIAL_CONTENT); // throw 206 Output doesn't follow the constraint
         }
     }
 
@@ -214,6 +244,8 @@ public class CompilerController {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             } else if (problem.getPattern().equals("patternMatching")) {
                 String expectedOutputString = String.valueOf(expectedOutput);
@@ -221,10 +253,13 @@ public class CompilerController {
                 log.info("While loop value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             }
         } else {
             log.info("While loop code does not match the expected pattern.");
+            throw new ResponseStatusException(HttpStatus.PARTIAL_CONTENT); // throw 206 Output doesn't follow the constraint
         }
     }
 
@@ -236,6 +271,8 @@ public class CompilerController {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             } else if (problem.getPattern().equals("patternMatching")) {
                 String expectedOutputString = String.valueOf(expectedOutput);
@@ -243,12 +280,14 @@ public class CompilerController {
                 log.info("For-While loop value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
                     saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                } else {
+                    throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
             }
         } else {
             log.info("For-While loop code does not match the expected pattern.");
+            throw new ResponseStatusException(HttpStatus.PARTIAL_CONTENT); // throw 206 Output doesn't follow the constraint
         }
     }
-
 
 }

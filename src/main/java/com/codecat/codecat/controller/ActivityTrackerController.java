@@ -28,15 +28,10 @@ public class ActivityTrackerController {
         return ResponseEntity.ok(activityTrackerList);
     }
 
-//    @PutMapping("/markTestCaseAsAnswered")
-//    private ResponseEntity<String> markTestCaseAsAnswered(@RequestBody ActivityTrackerDto request) {
-//        activityTrackerService.markTestCaseAsAnswered(request);
-//        return ResponseEntity.ok("Changed to true with user ID: " + request.getEmail() + " test case ID: " + request.getTestCaseId());
-//    }
-//
-//    @GetMapping
-//    public ResponseEntity<ActivityTracker> getActivityTracker(@RequestParam("email") String email, @RequestParam("testCaseId") Long testCaseId) {
-//        ActivityTracker activityTracker = activityTrackerService.getActivityTrackerByUserIdAndTestCase(email, testCaseId);
-//        return ResponseEntity.ok(activityTracker);
-//    }
+    @PutMapping("/update/{id}")
+    private ResponseEntity<ActivityTracker> markTestCaseAsAnswered(@PathVariable Long id, @RequestBody ActivityTracker activityTracker) {
+        ActivityTracker updatedActivityTracker = activityTrackerService.updateActivityTracker(id, activityTracker);
+        return ResponseEntity.ok(updatedActivityTracker);
+    }
+
 }

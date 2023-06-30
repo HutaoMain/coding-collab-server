@@ -30,4 +30,6 @@ public class ActivityTracker {
     private String expectedOutput;
 
     private String problemConstraint;
+
+    private String feedback;
 }

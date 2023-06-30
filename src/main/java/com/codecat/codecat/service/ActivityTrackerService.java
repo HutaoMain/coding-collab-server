@@ -20,4 +20,13 @@ public class ActivityTrackerService {
     public List<ActivityTracker> getActivityTrackerList() {
         return activityTrackerRepository.findAll();
     }
+
+    public ActivityTracker updateActivityTracker(Long id, ActivityTracker activityTracker) {
+        ActivityTracker activityTrackerExist = activityTrackerRepository.findById(id).orElseThrow(null);
+        if (activityTrackerExist != null) {
+            activityTrackerExist.setFeedback(activityTracker.getFeedback());
+            activityTrackerRepository.save(activityTrackerExist);
+        }
+        return activityTrackerExist;
+    }
 }
