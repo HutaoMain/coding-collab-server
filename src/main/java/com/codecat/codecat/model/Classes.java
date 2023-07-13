@@ -33,5 +33,5 @@ public class Classes {
     private String endTime;
 
     @OneToMany(mappedBy = "classes", cascade = CascadeType.REMOVE)
-    private List<Assessment> assessmentList;
+    private List<Problem> problemList;
 }

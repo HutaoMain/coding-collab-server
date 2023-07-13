@@ -28,7 +28,7 @@ public class AssessmentController {
         return ResponseEntity.ok(assessmentList);
     }
 
-    @GetMapping("/list/{classId}")
+    @GetMapping("/list/class-id/{classId}")
     private ResponseEntity<List<Assessment>> getAllAssessmentByClassId(@PathVariable Long classId) {
         List<Assessment> assessmentListByClassId = assessmentService.getAllAssessmentByClassId(classId);
         return ResponseEntity.ok(assessmentListByClassId);
@@ -38,5 +38,11 @@ public class AssessmentController {
     private ResponseEntity<Assessment> getAssessmentById(@PathVariable Long id) {
         Assessment assessment = assessmentService.getAssessmentById(id);
         return ResponseEntity.ok(assessment);
+    }
+
+    @PutMapping("/isTake/{id}")
+    private ResponseEntity<Assessment> updateIsTake(@PathVariable Long id, @RequestBody Assessment assessment) {
+        Assessment updatedAssessment = assessmentService.updateIsTake(id, assessment);
+        return ResponseEntity.ok(updatedAssessment);
     }
 }
