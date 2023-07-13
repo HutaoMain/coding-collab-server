@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 @Slf4j
@@ -42,9 +44,15 @@ public class UserController {
     }
 
     @PutMapping("/isEnable/userID/{email}")
-    private ResponseEntity<User> updateIsEnableUser(@PathVariable String email){
+    private ResponseEntity<User> updateIsEnableUser(@PathVariable String email) {
         User user = userService.updateIsEnableUser(email);
         return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/student")
+    private ResponseEntity<List<User>> getAllStudentUser() {
+        List<User> studentUsers = userService.getAllStudentUser();
+        return ResponseEntity.ok(studentUsers);
     }
 
 }
