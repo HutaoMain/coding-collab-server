@@ -4,9 +4,11 @@ import com.codecat.codecat.dto.CodeRequest;
 import com.codecat.codecat.model.ActivityTracker;
 import com.codecat.codecat.model.Problem;
 import com.codecat.codecat.model.TestCase;
+import com.codecat.codecat.model.User;
 import com.codecat.codecat.repository.ActivityTrackerRepository;
 import com.codecat.codecat.repository.ProblemRepository;
 import com.codecat.codecat.repository.TestCaseRepository;
+import com.codecat.codecat.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,9 +50,14 @@ public class CompilerController {
     @Autowired
     ActivityTrackerRepository activityTrackerRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
     @PostMapping("/{testCaseId}/{problemId}/{userEmail}/compile")
     public ResponseEntity<String> compileCode(@PathVariable Long problemId, @PathVariable Long testCaseId, @PathVariable String userEmail, @RequestBody CodeRequest codeRequest) throws JsonProcessingException {
         try {
+            User user = userRepository.findByEmail(userEmail);
+
             Problem problem = problemRepository.findById(problemId).orElse(null);
             if (problem == null) {
                 return ResponseEntity.notFound().build();
@@ -85,25 +92,29 @@ public class CompilerController {
             String output = responseJson.get("output").asText();
             log.info("output: {}", output);
 
+            String fullName = user.getFirstName() + " " + user.getMiddleName() + " " + user.getLastName();
+
+            Long assessmentId = problem.getAssessmentId();
+
             /* handles the checking of the constraints */
             switch (constraints) {
                 case "integer":
-                    handleIntegerConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    handleIntegerConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode(), fullName, assessmentId);
                     break;
                 case "string":
-                    handleStringConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    handleStringConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode(), fullName, assessmentId);
                     break;
                 case "userDefinedFunction":
-                    handleUserDefinedFunctionConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    handleUserDefinedFunctionConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode(), fullName, assessmentId);
                     break;
                 case "forLoop":
-                    handleForLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    handleForLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode(), fullName, assessmentId);
                     break;
                 case "whileLoop":
-                    handleWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    handleWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode(), fullName, assessmentId);
                     break;
                 case "forWhileLoop":
-                    handleForWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode());
+                    handleForWhileLoopConstraint(output, expectedOutput, problem, userEmail, testCaseId, testCase.getPoints(), codeRequest.getCode(), fullName, assessmentId);
                     break;
             }
 
@@ -116,7 +127,7 @@ public class CompilerController {
     }
 
     /* handles the saving of the activity */
-    private void saveActivityTracker(String userEmail, Long testCaseId, Integer points, String code, String expectedOutput, String problemConstraint) {
+    private void saveActivityTracker(String userEmail, Long testCaseId, Integer points, String code, String expectedOutput, String problemConstraint, String fullName, Long assessmentId) {
         ActivityTracker activityTracker = new ActivityTracker();
 
         activityTracker.setEmail(userEmail);
@@ -125,19 +136,21 @@ public class CompilerController {
         activityTracker.setCompiledCode(code);
         activityTracker.setExpectedOutput(expectedOutput);
         activityTracker.setProblemConstraint(problemConstraint);
+        activityTracker.setFullName(fullName);
+        activityTracker.setAssessmentId(assessmentId);
 
         activityTrackerRepository.save(activityTracker);
     }
 
     /* handles the Integer Constraint */
-    private void handleIntegerConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code) {
+    private void handleIntegerConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code, String fullName, Long assessmentId) {
         try {
             int integerValue = Integer.parseInt(output.trim());
             log.info("integer value ito: {}", integerValue);
 
             if (problem.getPattern().equals("exactMatch")) {
                 if (Integer.parseInt(expectedOutput) == integerValue) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -146,7 +159,7 @@ public class CompilerController {
                 String integerValueString = String.valueOf(integerValue);
 
                 if (integerValueString.contains(expectedOutputString)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -158,11 +171,11 @@ public class CompilerController {
     }
 
     /* handles the String Constraint */
-    private void handleStringConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code) {
+    private void handleStringConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code, String fullName, Long assessmentId) {
         try {
             if (problem.getPattern().trim().equals("exactMatch".trim())) {
                 if (expectedOutput.trim().equals(output.trim())) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -171,7 +184,7 @@ public class CompilerController {
                 String stringValue = String.valueOf(output);
                 log.info("String value ito: {} string pattern matching {} ", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -183,13 +196,13 @@ public class CompilerController {
     }
 
     /* handles the User Defined Constraint */
-    private void handleUserDefinedFunctionConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code) {
+    private void handleUserDefinedFunctionConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code, String fullName, Long assessmentId) {
         String patternRegex = "def [a-zA-Z_][a-zA-Z0-9_]*\\((?:[^),]*,?\\s*)*\\)";
 
         if (code.matches(patternRegex)) {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -198,7 +211,7 @@ public class CompilerController {
                 String stringValue = String.valueOf(output);
                 log.info("User-defined function value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -210,13 +223,13 @@ public class CompilerController {
     }
 
     /* handles the for loop Constraint */
-    private void handleForLoopConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code) {
+    private void handleForLoopConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code, String fullName, Long assessmentId) {
         String patternRegex = "for\\s+\\w+\\s+in\\s+\\w+:";
 
         if (code.matches(patternRegex)) {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -225,7 +238,7 @@ public class CompilerController {
                 String stringValue = String.valueOf(output);
                 log.info("For loop value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -237,13 +250,13 @@ public class CompilerController {
     }
 
     /* handles the while loop Constraint */
-    private void handleWhileLoopConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code) {
+    private void handleWhileLoopConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code, String fullName, Long assessmentId) {
         String patternRegex = "while\\s+.+:";
 
         if (code.matches(patternRegex)) {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -252,7 +265,7 @@ public class CompilerController {
                 String stringValue = String.valueOf(output);
                 log.info("While loop value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -264,13 +277,13 @@ public class CompilerController {
     }
 
     /* handles the combination of for while loop Constraint */
-    private void handleForWhileLoopConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code) {
+    private void handleForWhileLoopConstraint(String output, String expectedOutput, Problem problem, String userEmail, Long testCaseId, Integer points, String code, String fullName, Long assessmentId) {
         String patternRegex = "(for\\s+\\w+\\s+in\\s+\\w+:)|(while\\s+.+:)";
 
         if (code.matches(patternRegex)) {
             if (problem.getPattern().equals("exactMatch")) {
                 if (expectedOutput.equals(output)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }
@@ -279,7 +292,7 @@ public class CompilerController {
                 String stringValue = String.valueOf(output);
                 log.info("For-While loop value ito: {} pattern matching {}", stringValue, output);
                 if (stringValue.contains(expectedOutputString)) {
-                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint());
+                    saveActivityTracker(userEmail, testCaseId, points, code, expectedOutput, problem.getProblemConstraint(), fullName, assessmentId);
                 } else {
                     throw new ResponseStatusException(HttpStatus.RESET_CONTENT); // throw 205 Incorrect Answer
                 }

@@ -32,4 +32,8 @@ public class ActivityTracker {
     private String problemConstraint;
 
     private String feedback;
+
+    private String fullName;
+
+    private Long assessmentId;
 }
