@@ -34,10 +34,6 @@ public class Classes {
 
     private String endTime;
 
-    @JsonIgnore
-    @ManyToMany(mappedBy = "classes", cascade = CascadeType.REMOVE)
-    private List<User> users;
-
     @OneToMany(mappedBy = "classes", cascade = CascadeType.REMOVE)
     private List<Problem> problemList;
 }
