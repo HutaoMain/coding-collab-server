@@ -42,4 +42,11 @@ public class UserClassesController {
         List<UserClasses> userClassesList = userClassesService.getAllClassesByClasses(classCode);
         return ResponseEntity.ok(userClassesList);
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<UserClasses> updateAssessmentMode(@PathVariable Long id, @RequestBody UserClasses userClasses) {
+        UserClasses userClassesObject = userClassesService.updateAssessmentMode(id, userClasses);
+        return ResponseEntity.ok(userClassesObject);
+    }
+
 }

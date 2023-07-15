@@ -16,6 +16,7 @@ import javax.persistence.*;
 public class UserClasses {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -26,5 +27,5 @@ public class UserClasses {
     @JoinColumn(name = "class_id")
     private Classes classes;
 
-    private String assessmentMode;
+    private String assessmentMode = "Individual";
 }

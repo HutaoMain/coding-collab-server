@@ -49,18 +49,12 @@ public class UserClassesService {
         }
 
         UserClasses userClasses = new UserClasses();
-        userClasses.setId(generateUserClassesId());
         userClasses.setUser(user);
         userClasses.setClasses(classes);
 
         userClassesRepository.save(userClasses);
     }
 
-    private Long generateUserClassesId() {
-        long timestamp = System.currentTimeMillis();
-        long randomNumber = new Random().nextLong();
-        return Math.abs(timestamp + randomNumber);
-    }
 
     public List<UserClasses> getAllClassesByClasses(String classCode) {
         Classes classes = classesRepository.findByClassCode(classCode);
@@ -75,4 +69,13 @@ public class UserClassesService {
 
         return userClassesList;
     }
+
+    public UserClasses updateAssessmentMode(Long id, UserClasses userClasses) {
+        UserClasses userClassesObject = userClassesRepository.findById(id).orElse(null);
+        assert userClassesObject != null;
+        log.info(userClassesObject.getUser().getEmail());
+        userClassesObject.setAssessmentMode(userClasses.getAssessmentMode());
+        return userClassesRepository.save(userClassesObject);
+    }
+
 }

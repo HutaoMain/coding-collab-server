@@ -43,7 +43,7 @@ public class UserController {
         return ResponseEntity.ok(userInfo);
     }
 
-    @PutMapping("/isEnable/userID/{email}")
+    @GetMapping("/isEnable/userID/{email}")
     private ResponseEntity<User> updateIsEnableUser(@PathVariable String email) {
         User user = userService.updateIsEnableUser(email);
         return ResponseEntity.ok(user);
