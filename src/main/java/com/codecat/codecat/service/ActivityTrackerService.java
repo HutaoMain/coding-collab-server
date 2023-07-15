@@ -21,6 +21,14 @@ public class ActivityTrackerService {
         return activityTrackerRepository.findAll();
     }
 
+    public List<ActivityTracker> getActivityTrackerByAssessmentId(Long assessmentId) {
+        return activityTrackerRepository.findByAssessmentId(assessmentId);
+    }
+
+    public List<ActivityTracker> getActivityTrackerStudent(String email) {
+        return activityTrackerRepository.findByEmail(email);
+    }
+
     public ActivityTracker updateActivityTracker(Long id, ActivityTracker activityTracker) {
         ActivityTracker activityTrackerExist = activityTrackerRepository.findById(id).orElseThrow(null);
         if (activityTrackerExist != null) {

@@ -25,4 +25,6 @@ public class UserClasses {
     @ManyToOne
     @JoinColumn(name = "class_id")
     private Classes classes;
+
+    private String assessmentMode;
 }
