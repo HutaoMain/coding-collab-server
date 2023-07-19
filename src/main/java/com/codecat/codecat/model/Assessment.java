@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "assessment")
@@ -19,6 +20,8 @@ public class Assessment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String assessmentCode;
+
     private String assessmentTitle;
 
     private String deadline;
@@ -27,9 +30,6 @@ public class Assessment {
 
     private String workMode;
 
-    private Long classId;
-
-    private Boolean isTake;
-
-    private String timeAndDateOfAssessment;
+    @OneToMany(mappedBy = "assessment", cascade = CascadeType.REMOVE)
+    private List<Problem> problemList;
 }

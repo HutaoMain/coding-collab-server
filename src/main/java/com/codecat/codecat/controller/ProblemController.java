@@ -37,11 +37,11 @@ public class ProblemController {
 //    }
 
 
-    @GetMapping("/list/class-id/{classesId}")
-    private ResponseEntity<List<Problem>> getAllProblemByClassesId(@PathVariable Long classesId) {
-        List<Problem> problemByClassesId = problemService.getAllProblemByClassesId(classesId);
-        return ResponseEntity.ok(problemByClassesId);
-    }
+//    @GetMapping("/list/class-id/{classesId}")
+//    private ResponseEntity<List<Problem>> getAllProblemByClassesId(@PathVariable Long classesId) {
+//        List<Problem> problemByClassesId = problemService.getAllProblemByClassesId(classesId);
+//        return ResponseEntity.ok(problemByClassesId);
+//    }
 
     @GetMapping("/list/assessment-id/{assessmentId}")
     private ResponseEntity<List<Problem>> getAllByAssessmentId(@PathVariable Long assessmentId) {
@@ -55,9 +55,9 @@ public class ProblemController {
         return ResponseEntity.ok(problemById);
     }
 
-    @PutMapping("/update-assessment-id/{problemId}")
-    private ResponseEntity<Problem> updateProblem(@PathVariable Long problemId, @RequestBody AssessmentIdDto assessmentIdDto){
-        Problem updatedProblem = problemService.updateProblem(problemId, assessmentIdDto);
-        return ResponseEntity.ok(updatedProblem);
-    }
+//    @PutMapping("/update-assessment-id/{problemId}")
+//    private ResponseEntity<Problem> updateProblem(@PathVariable Long problemId, @RequestBody AssessmentIdDto assessmentIdDto){
+//        Problem updatedProblem = problemService.updateProblem(problemId, assessmentIdDto);
+//        return ResponseEntity.ok(updatedProblem);
+//    }
 }

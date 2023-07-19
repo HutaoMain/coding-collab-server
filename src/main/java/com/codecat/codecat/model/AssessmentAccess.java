@@ -8,28 +8,20 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "assessment_access")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class AssessmentAccess {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String lastName;
+//    private Long classId;
 
-    private String firstName;
-
-    private String middleName;
-
-    private String password;
+    private Long assessmentId;
 
     private String email;
-
-    private String classification = "student";
-
-    private Boolean isEnable = false;
 }

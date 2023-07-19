@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserClasses {
+public class UserAssessment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,8 +24,8 @@ public class UserClasses {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "class_id")
-    private Classes classes;
+    @JoinColumn(name = "assessment_id")
+    private Assessment assessment;
 
     private String assessmentMode = "Individual";
 }

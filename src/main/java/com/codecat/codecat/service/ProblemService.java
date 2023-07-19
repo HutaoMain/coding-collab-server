@@ -29,9 +29,9 @@ public class ProblemService {
 //        return problemRepository.findByAssessmentId(assessmentId);
 //    }
 
-    public List<Problem> getAllProblemByClassesId(Long classesId) {
-        return problemRepository.findByClassesId(classesId);
-    }
+//    public List<Problem> getAllProblemByClassesId(Long classesId) {
+//        return problemRepository.findByClassesId(classesId);
+//    }
 
     public List<Problem> getAllProblemsByAssessmentId(Long assessmentId) {
         return problemRepository.findByAssessmentId(assessmentId);
@@ -41,13 +41,13 @@ public class ProblemService {
         return problemRepository.findById(problemId);
     }
 
-    public Problem updateProblem(Long problemId, AssessmentIdDto assessmentIdDto) {
-        Problem updatedProblem = problemRepository.findById(problemId).orElse(null);
-        log.info("eto problem : {}", updatedProblem);
-        assert updatedProblem != null;
-        updatedProblem.setAssessmentId(assessmentIdDto.getAssessmentId());
-        problemRepository.save(updatedProblem);
-        return updatedProblem;
-    }
+//    public Problem updateProblem(Long problemId, AssessmentIdDto assessmentIdDto) {
+//        Problem updatedProblem = problemRepository.findById(problemId).orElse(null);
+//        log.info("eto problem : {}", updatedProblem);
+//        assert updatedProblem != null;
+//        updatedProblem.setAssessmentId(assessmentIdDto.getAssessmentId());
+//        problemRepository.save(updatedProblem);
+//        return updatedProblem;
+//    }
 
 }

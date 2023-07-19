@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JoinRequestDto {
-    private String classCode;
+    private String assessmentCode;
 }

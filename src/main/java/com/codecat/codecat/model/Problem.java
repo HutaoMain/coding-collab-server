@@ -36,11 +36,8 @@ public class Problem {
     @OneToMany(mappedBy = "problem", cascade = CascadeType.REMOVE)
     private List<TestCase> testCase;
 
-    @Column(name = "assessment_id")
-    private Long assessmentId;
-
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ManyToOne
-    @JoinColumn(name = "classes_id", referencedColumnName = "id")
-    private Classes classes;
+    @JoinColumn(name = "assessment_id", referencedColumnName = "id")
+    private Assessment assessment;
 }

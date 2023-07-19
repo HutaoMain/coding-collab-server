@@ -94,7 +94,7 @@ public class CompilerController {
 
             String fullName = user.getFirstName() + " " + user.getMiddleName() + " " + user.getLastName();
 
-            Long assessmentId = problem.getAssessmentId();
+            Long assessmentId = problem.getAssessment().getId();
 
             /* handles the checking of the constraints */
             switch (constraints) {
