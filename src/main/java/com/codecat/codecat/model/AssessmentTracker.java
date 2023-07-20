@@ -8,20 +8,24 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "assessment_access")
+@Table(name = "assessment_tracker")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AssessmentAccess {
+public class AssessmentTracker {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    private Long classId;
-
     private Long assessmentId;
 
+    private String deadline;
+
+    private String duration;
+
     private String email;
+
+    private String endTime;
 }

@@ -1,11 +1,11 @@
 package com.codecat.codecat.service;
 
 import com.codecat.codecat.model.Assessment;
-import com.codecat.codecat.model.AssessmentAccess;
+import com.codecat.codecat.model.AssessmentTracker;
 //import com.codecat.codecat.model.Classes;
 import com.codecat.codecat.model.User;
 import com.codecat.codecat.model.UserAssessment;
-import com.codecat.codecat.repository.AssessmentAccessRepository;
+import com.codecat.codecat.repository.AssessmentTrackerRepository;
 //import com.codecat.codecat.repository.ClassesRepository;
 import com.codecat.codecat.repository.AssessmentRepository;
 import com.codecat.codecat.repository.UserClassesRepository;
@@ -33,7 +33,7 @@ public class UserAssessmentService {
     AssessmentRepository assessmentRepository;
 
     @Autowired
-    AssessmentAccessRepository assessmentAccessRepository;
+    AssessmentTrackerRepository assessmentTrackerRepository;
 
     public List<UserAssessment> getAllUserBasedOnUserEmail(String userEmail) {
         User user = userRepository.findByEmail(userEmail);
@@ -48,12 +48,12 @@ public class UserAssessmentService {
     /* AssessmentAccess method here */
 
     private void creatingAssessmentAccess(String userEmail, Long assessmentId) {
-        AssessmentAccess assessmentAccess = new AssessmentAccess();
+        AssessmentTracker assessmentTracker = new AssessmentTracker();
 
-        assessmentAccess.setEmail(userEmail);
-        assessmentAccess.setAssessmentId(assessmentId);
+        assessmentTracker.setEmail(userEmail);
+        assessmentTracker.setAssessmentId(assessmentId);
 
-        assessmentAccessRepository.save(assessmentAccess);
+        assessmentTrackerRepository.save(assessmentTracker);
     }
 
     public void joinAssessment(String assessmentCode, String userEmail) throws Exception {
