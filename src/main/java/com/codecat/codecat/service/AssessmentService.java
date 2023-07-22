@@ -21,15 +21,20 @@ public class AssessmentService {
         return assessmentRepository.findAll();
     }
 
-//    public List<Assessment> getAllAssessmentByClassId(Long classId) {
-//        return assessmentRepository.findByClassId(classId);
-//    }
-
     public Assessment getAssessmentById(Long id) {
         return assessmentRepository.findById(id).orElse(null);
     }
 
-//    public Assessment updateIsTake(Long id, Assessment assessment){
+    public Assessment updateEndOfDuration(Long id, Assessment assessment) {
+        Assessment getAssessmentById = assessmentRepository.findById(id).orElse(null);
+
+        assert getAssessmentById != null;
+        getAssessmentById.setEndOfDuration(assessment.getEndOfDuration());
+
+        return assessmentRepository.save(getAssessmentById);
+    }
+
+    //    public Assessment updateIsTake(Long id, Assessment assessment){
 //        Assessment updatedAssessment = assessmentRepository.findById(id).orElse(null);
 //        assert  updatedAssessment != null;
 //        updatedAssessment.setIsTake(true);
@@ -37,4 +42,7 @@ public class AssessmentService {
 //        return assessmentRepository.save(updatedAssessment);
 //    }
 
+    //    public List<Assessment> getAllAssessmentByClassId(Long classId) {
+//        return assessmentRepository.findByClassId(classId);
+//    }
 }

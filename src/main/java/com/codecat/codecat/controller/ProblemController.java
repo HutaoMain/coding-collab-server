@@ -1,6 +1,7 @@
 package com.codecat.codecat.controller;
 
 import com.codecat.codecat.dto.AssessmentIdDto;
+import com.codecat.codecat.dto.ProblemDto;
 import com.codecat.codecat.model.Problem;
 import com.codecat.codecat.service.ProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,12 @@ public class ProblemController {
     private ResponseEntity<Optional<Problem>> getProblemById(@PathVariable Long problemId) {
         Optional<Problem> problemById = problemService.getProblemById(problemId);
         return ResponseEntity.ok(problemById);
+    }
+
+    @GetMapping("/problemDto/{problemId}")
+    private ResponseEntity<ProblemDto> getProblemDtoById(@PathVariable Long problemId) {
+        ProblemDto problemDto = problemService.getProblemDtoById(problemId);
+        return ResponseEntity.ok(problemDto);
     }
 
 //    @PutMapping("/update-assessment-id/{problemId}")

@@ -25,4 +25,10 @@ public class AssessmentTrackerController {
         AssessmentTracker assessmentTracker = assessmentTrackerService.getAssessmentTrackerByAssessmentIdAndEmail(assessmentId, email);
         return ResponseEntity.ok(assessmentTracker);
     }
+
+    @PutMapping("/update/{assessmentId}/{email}")
+    private ResponseEntity<AssessmentTracker> updateAssessmentTrackerByAssessmentIdAndEmail(@PathVariable Long assessmentId, @PathVariable String email, @RequestBody AssessmentTracker assessmentTracker){
+        AssessmentTracker updatedAssessmentTracker = assessmentTrackerService.updateAssessmentTrackerByAssessmentIdAndEmail(assessmentId, email, assessmentTracker);
+        return ResponseEntity.ok(updatedAssessmentTracker);
+    }
 }

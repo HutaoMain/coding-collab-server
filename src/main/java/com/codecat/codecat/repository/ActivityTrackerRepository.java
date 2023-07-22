@@ -14,4 +14,6 @@ public interface ActivityTrackerRepository extends JpaRepository<ActivityTracker
     List<ActivityTracker> findByAssessmentId(Long assessmentId);
 
     List<ActivityTracker> findByEmail(String email);
+
+    List<ActivityTracker> findByAssessmentIdAndEmail(Long assessmentId, String email);
 }

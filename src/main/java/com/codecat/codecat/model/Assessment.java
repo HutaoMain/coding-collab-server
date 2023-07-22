@@ -32,4 +32,6 @@ public class Assessment {
 
     @OneToMany(mappedBy = "assessment", cascade = CascadeType.REMOVE)
     private List<Problem> problemList;
+
+    private String endOfDuration;
 }

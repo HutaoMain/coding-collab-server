@@ -37,4 +37,8 @@ public class ActivityTrackerService {
         }
         return activityTrackerExist;
     }
+
+    public List<ActivityTracker> getActivityTrackerListByAssessmentIdAndEmail(Long assessmentId, String email){
+        return activityTrackerRepository.findByAssessmentIdAndEmail(assessmentId, email);
+    }
 }

@@ -25,4 +25,10 @@ public class AssessmentTrackerService {
     public AssessmentTracker getAssessmentTrackerByAssessmentIdAndEmail(Long assessmentId, String email){
         return assessmentTrackerRepository.findByAssessmentIdAndEmail(assessmentId, email);
     }
+
+    public AssessmentTracker updateAssessmentTrackerByAssessmentIdAndEmail(Long assessmentId, String email, AssessmentTracker assessmentTracker){
+        AssessmentTracker updatedAssessmentTracker = assessmentTrackerRepository.findByAssessmentIdAndEmail(assessmentId, email);
+        updatedAssessmentTracker.setEndTime(assessmentTracker.getEndTime());
+        return  assessmentTrackerRepository.save(updatedAssessmentTracker);
+    }
 }

@@ -46,4 +46,11 @@ public class ActivityTrackerController {
         return ResponseEntity.ok(activityTrackerList);
     }
 
+    @GetMapping("/list/assessmentIdAndEmail/{assessmentId}/{email}")
+    private ResponseEntity<List<ActivityTracker>> getActivityTrackerListByAssessmentIdAndEmail(@PathVariable Long assessmentId, @PathVariable String email) {
+        List<ActivityTracker> activityTrackerList = activityTrackerService.getActivityTrackerListByAssessmentIdAndEmail(assessmentId, email);
+        return ResponseEntity.ok(activityTrackerList);
+    }
+
+
 }
